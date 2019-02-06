@@ -63,7 +63,71 @@ func main() {
 				cli.IntFlag{Name: "volume, v"},
 			},
 			Action: func(c *cli.Context) error {
-				return emotivaControl(c, fmt.Sprintf("<volume value=\"%d\" ack=\"yes\" />", c.Int("volume")))
+				return emotivaControl(c, fmt.Sprintf(`<set_volume value="%d" ack="yes" />`, c.Int("volume")))
+			},
+		},
+		{
+			Name:  "info",
+			Usage: "display info screen",
+			Flags: []cli.Flag{},
+			Action: func(c *cli.Context) error {
+				return emotivaControl(c, `<info value="0" ack="yes" />`)
+			},
+		},
+		{
+			Name:  "power",
+			Usage: "set power state",
+			Flags: []cli.Flag{},
+			Subcommands: []cli.Command{
+				{
+					Name:  "on",
+					Usage: "turn power on",
+					Action: func(c *cli.Context) error {
+						return emotivaControl(c, `<power_on value="0" ack="yes" />`)
+					},
+				},
+				{
+					Name:  "off",
+					Usage: "turn power off",
+					Action: func(c *cli.Context) error {
+						return emotivaControl(c, `<power_off value="0" ack="yes" />`)
+					},
+				},
+				{
+					Name:  "standby",
+					Usage: "set standby",
+					Action: func(c *cli.Context) error {
+						return emotivaControl(c, `<standby value="0" ack="yes" />`)
+					},
+				},
+			},
+		},
+		{
+			Name:  "loudness",
+			Usage: "set loudness",
+			Flags: []cli.Flag{},
+			Subcommands: []cli.Command{
+				{
+					Name:  "on",
+					Usage: "turn loudness on",
+					Action: func(c *cli.Context) error {
+						return emotivaControl(c, `<loudness_on value="0" ack="yes" />`)
+					},
+				},
+				{
+					Name:  "off",
+					Usage: "turn loudness off",
+					Action: func(c *cli.Context) error {
+						return emotivaControl(c, `<loudness_off value="0" ack="yes" />`)
+					},
+				},
+				{
+					Name:  "toggle",
+					Usage: "toggle loudness",
+					Action: func(c *cli.Context) error {
+						return emotivaControl(c, `<loudness value="0" ack="yes" />`)
+					},
+				},
 			},
 		},
 	}
