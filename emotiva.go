@@ -91,6 +91,12 @@ func emotivaControl(c *cli.Context, command string) error {
 	return nil
 }
 
+func inputFuncGenerator(input string) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
+		return emotivaControl(c, fmt.Sprintf(`<%s value="0" ack="yes" />`, input))
+	}
+}
+
 func inputGenerator() []cli.Command {
 	var inputs []cli.Command
 
@@ -114,11 +120,9 @@ func inputGenerator() []cli.Command {
 		"ARC",
 	} {
 		inputs = append(inputs, cli.Command{
-			Name:  input,
-			Usage: "select input " + input,
-			Action: func(c *cli.Context) error {
-				return emotivaControl(c, fmt.Sprintf(`<%s value="0" ack="yes" />`, input))
-			},
+			Name:   input,
+			Usage:  "select input " + input,
+			Action: inputFuncGenerator(input),
 		})
 
 	}
