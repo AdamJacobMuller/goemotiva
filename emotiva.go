@@ -1,10 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"encoding/xml"
 	"fmt"
 	"net"
 	"os"
+	"os/exec"
+	"os/signal"
+	"syscall"
 
 	"github.com/urfave/cli"
 )
@@ -48,6 +52,9 @@ func emotivaRW(c *cli.Context, command, wPort, rPort string, target interface{})
 			return "", err
 		}
 	}
+
+	conn.Close()
+	listenConn.Close()
 
 	return string(buf[0:n]), nil
 }
@@ -130,6 +137,62 @@ func inputGenerator() []cli.Command {
 	return inputs
 }
 
+func menuJog(c *cli.Context) error {
+	err := emotivaControl(c, `<menu value="0" ack="yes" />`)
+	if err != nil {
+		return err
+	}
+
+	cc := make(chan os.Signal)
+	signal.Notify(cc, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-cc
+		err = emotivaControl(c, `<menu value="0" ack="yes" />`)
+		if err != nil {
+			panic(err)
+		}
+		exec.Command("stty", "-f", "/dev/tty", "echo").Run()
+		os.Exit(1)
+	}()
+
+	//no buffering
+	exec.Command("stty", "-f", "/dev/tty", "cbreak", "min", "1").Run()
+	//no visible output
+	exec.Command("stty", "-f", "/dev/tty", "-echo").Run()
+
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		b, err := reader.ReadByte()
+		if err != nil {
+			return err
+		}
+		err = nil
+		fmt.Printf("b is %d\n", b)
+		switch int(b) {
+		case 65:
+			// up
+			err = emotivaControl(c, `<up value="0" ack="yes" />`)
+		case 66:
+			// down
+			emotivaControl(c, `<down value="0" ack="yes" />`)
+		case 67:
+			// right
+			emotivaControl(c, `<right value="0" ack="yes" />`)
+		case 68:
+			// left
+			emotivaControl(c, `<left value="0" ack="yes" />`)
+		case 10:
+			// enter
+			emotivaControl(c, `<enter value="0" ack="yes" />`)
+		default:
+			fmt.Printf("unhandled int(b) is %d\n", int(b))
+		}
+		if err != nil {
+			return err
+		}
+	}
+}
+
 func main() {
 	app := cli.NewApp()
 
@@ -151,6 +214,21 @@ func main() {
 			},
 			Action: func(c *cli.Context) error {
 				return emotivaControl(c, fmt.Sprintf(`<set_volume value="%d" ack="yes" />`, c.Int("volume")))
+			},
+		},
+		{
+			Name:  "menu",
+			Usage: "toggle menu",
+			Flags: []cli.Flag{},
+			Action: func(c *cli.Context) error {
+				return emotivaControl(c, `<menu value="0" ack="yes" />`)
+			},
+			Subcommands: []cli.Command{
+				{
+					Name:   "jog",
+					Usage:  "toggle menu and read input for keyboard navigation",
+					Action: menuJog,
+				},
 			},
 		},
 		{
