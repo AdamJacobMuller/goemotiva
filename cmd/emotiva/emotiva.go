@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/adamjacobmuller/goemotiva"
@@ -128,6 +129,20 @@ func main() {
 			},
 			Action: func(c *cli.Context) error {
 				return emotiva.Control(c, fmt.Sprintf(`<set_volume value="%d" ack="yes" />`, c.Int("volume")))
+			},
+		},
+		{
+			Name:  "subscribe",
+			Usage: "subscribe",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "parameters",
+					Value: "power,source,mode,audio_input,audio_bitstream,audio_bits,video_input,video_format,video_space",
+				},
+			},
+			Action: func(c *cli.Context) error {
+				parameters := strings.Split(c.String("parameters"), ",")
+				return emotiva.Subscribe(c, parameters)
 			},
 		},
 		{

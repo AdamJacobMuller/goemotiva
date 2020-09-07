@@ -35,3 +35,19 @@ func Control(c *cli.Context, command string) error {
 
 	return nil
 }
+
+func Subscribe(c *cli.Context, parameters []string) error {
+	ec, err := NewEmotivaController(c.GlobalString("address"))
+	if err != nil {
+		return err
+	}
+
+	_, err = ec.Subscribe(parameters, nil)
+	if err != nil {
+		return err
+	}
+
+	ec.Close()
+
+	return nil
+}
