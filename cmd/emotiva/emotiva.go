@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	"github.com/adamjacobmuller/goemotiva"
+	"github.com/adamjacobmuller/goemotiva/server"
 	"github.com/urfave/cli"
 )
 
@@ -132,8 +133,8 @@ func main() {
 			},
 		},
 		{
-			Name:  "subscribe",
-			Usage: "subscribe",
+			Name:  "status",
+			Usage: "status",
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "parameters",
@@ -142,7 +143,20 @@ func main() {
 			},
 			Action: func(c *cli.Context) error {
 				parameters := strings.Split(c.String("parameters"), ",")
-				return emotiva.Subscribe(c, parameters)
+				return emotiva.Status(c, parameters)
+			},
+		},
+		{
+			Name:  "server",
+			Usage: "server",
+			Flags: []cli.Flag{},
+			Action: func(c *cli.Context) error {
+				_, err := server.NewServer(c.GlobalString("address"))
+				if err != nil {
+					return err
+				}
+
+				return nil
 			},
 		},
 		{
