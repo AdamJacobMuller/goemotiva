@@ -137,7 +137,7 @@ func main() {
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "parameters",
-					Value: "power,source,mode,audio_input,audio_bitstream,audio_bits,video_input,video_format,video_space",
+					Value: "power,source,volume,mode,audio_input,audio_bitstream,audio_bits,video_input,video_format,video_space",
 				},
 			},
 			Action: func(c *cli.Context) error {
