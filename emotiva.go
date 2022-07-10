@@ -1,8 +1,10 @@
 package emotiva
 
 import (
+	"bytes"
 	"encoding/xml"
 	"fmt"
+	"io"
 	"net"
 )
 
@@ -116,6 +118,19 @@ type Notify struct {
 	ModeStereo         Value    `xml:"mode_stereo"`
 }
 
+func unmarshal(buffer []byte, destination interface{}) error {
+	reader := bytes.NewReader(buffer)
+	decoder := xml.NewDecoder(reader)
+	decoder.CharsetReader = func(label string, input io.Reader) (io.Reader, error) {
+		return input, nil
+	}
+	err := decoder.Decode(destination)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (ec *EmotivaController) ReadNotify() (*Notify, error) {
 	buf := make([]byte, 1024)
 	fmt.Printf("ReadNotify\n")
@@ -128,7 +143,7 @@ func (ec *EmotivaController) ReadNotify() (*Notify, error) {
 
 	np := &Notify{}
 
-	err = xml.Unmarshal(buf[0:n], np)
+	err = unmarshal(buf[0:n], np)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +200,7 @@ func (ec *EmotivaController) r(rx *net.UDPConn, target interface{}) (string, err
 	fmt.Printf("read %d from %s at %s: %s\n", n, addr, rx.LocalAddr().String(), buf[0:n])
 
 	if target != nil {
-		err = xml.Unmarshal(buf[0:n], target)
+		err = unmarshal(buf[0:n], target)
 		if err != nil {
 			return "", err
 		}
@@ -213,7 +228,7 @@ func (ec *EmotivaController) rw(body string, tx, rx *net.UDPConn, target interfa
 	fmt.Printf("read %d from %s at %s: %s\n", n, addr, rx.LocalAddr().String(), buf[0:n])
 
 	if target != nil {
-		err = xml.Unmarshal(buf[0:n], target)
+		err = unmarshal(buf[0:n], target)
 		if err != nil {
 			return "", err
 		}

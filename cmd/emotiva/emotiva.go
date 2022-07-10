@@ -54,7 +54,12 @@ func inputGenerator() []cli.Command {
 }
 
 func menuJog(c *cli.Context) error {
-	err := emotiva.Control(c, `<menu value="0" ack="yes" />`)
+	ec, err := emotiva.NewEmotivaController(c.GlobalString("address"))
+	if err != nil {
+		return err
+	}
+
+	_, err = ec.Control(`<menu value="0" ack="yes" />`, nil)
 	if err != nil {
 		return err
 	}
@@ -63,12 +68,12 @@ func menuJog(c *cli.Context) error {
 	signal.Notify(cc, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-cc
-		err = emotiva.Control(c, `<menu value="0" ack="yes" />`)
+		_, err = ec.Control(`<menu value="0" ack="yes" />`, nil)
 		if err != nil {
 			panic(err)
 		}
 		exec.Command("stty", "-f", "/dev/tty", "echo").Run()
-		os.Exit(1)
+		os.Exit(0)
 	}()
 
 	//no buffering
@@ -83,23 +88,28 @@ func menuJog(c *cli.Context) error {
 			return err
 		}
 		err = nil
-		fmt.Printf("b is %d\n", b)
 		switch int(b) {
+		case 27:
+		case 91:
+			continue
 		case 65:
 			// up
-			err = emotiva.Control(c, `<up value="0" ack="yes" />`)
+			_, err = ec.Control(`<up value="0" ack="yes" />`, nil)
 		case 66:
 			// down
-			emotiva.Control(c, `<down value="0" ack="yes" />`)
+			_, err = ec.Control(`<down value="0" ack="yes" />`, nil)
 		case 67:
 			// right
-			emotiva.Control(c, `<right value="0" ack="yes" />`)
+			_, err = ec.Control(`<right value="0" ack="yes" />`, nil)
 		case 68:
 			// left
-			emotiva.Control(c, `<left value="0" ack="yes" />`)
+			_, err = ec.Control(`<left value="0" ack="yes" />`, nil)
 		case 10:
 			// enter
-			emotiva.Control(c, `<enter value="0" ack="yes" />`)
+			_, err = ec.Control(`<enter value="0" ack="yes" />`, nil)
+		case 113:
+			// q
+			close(cc)
 		default:
 			fmt.Printf("unhandled int(b) is %d\n", int(b))
 		}

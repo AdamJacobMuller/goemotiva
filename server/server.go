@@ -29,7 +29,7 @@ func NewServer(address string) (*Server, error) {
 		return nil, err
 	}
 
-	ec.WriteControl("<emotivaSubscription><video_format/><mode_ref_stereo/></emotivaSubscription>")
+	ec.WriteControl("<emotivaSubscription><video_format/><mode_ref_stereo/><audio_bitstream/><video_format/><tuner_signal/></emotivaSubscription>")
 	go func() {
 		for {
 			n, err := ec.ReadNotify()
